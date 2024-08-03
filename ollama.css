@@ -1,0 +1,72 @@
+:root {
+    --primary: #161616;
+    --secondary: #232323;
+    --tertiary: #303030;
+
+    --white: #fefefe;
+    --grey: #c6c6c6;
+    --black: #000000;
+
+    --radius: 10px;
+    --radius-larger: 15px;
+    --spacing: 10px;
+    --smaller-spacing: 5px;
+    --padding: 5px;
+    --padding-larger: 15px;
+
+    --max-chat-width: 1000px;
+}
+
+body {
+    font-family: Calibri, Candara, Segoe, Segoe UI, Optima, Arial, sans-serif;
+    background-color: var(--primary);
+    color: var(--white);
+    display: flex;
+    margin: 0;
+    position: relative;
+}
+
+* {
+    font-family: Calibri, Candara, Segoe, Segoe UI, Optima, Arial, sans-serif;
+    color: var(--white);
+}
+
+#main {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    position: absolute;
+}
+
+#sidebar {
+    background-color: var(--black);
+    flex-shrink: 1;
+    display: flex;
+    flex-direction: column;
+    padding: var(--padding-larger);
+    box-sizing: border-box;
+    column-gap: var(--spacing);
+}
+
+#chatOuterContainer {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#chatContainer {
+    max-width: var(--max-chat-width);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#chat {
+
+}
+
+#chatBox {
+    width: 100%;
+}
