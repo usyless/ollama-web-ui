@@ -68,13 +68,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 context: currentContext,
                 messages: Array.from(chat.children).map((el) => el.textContent)
             }
-            const id = chat.getAttribute('data-id');
-            if (id) chatInfo.id = id;
+            let id = chat.getAttribute('data-id');
             const transaction = db.transaction(['chat_history'], "readwrite");
             const objectStore = transaction.objectStore('chat_history');
-            objectStore.add(chatInfo);
+            if (id) {
+                id = Number(id);
+                objectStore.get(id).addEventListener('success', (e) => {
+                    const result = e.target.result;
+                    result.context = currentContext;
+                    result.messages = chatInfo.messages;
+                    objectStore.put(result);
+                });
+            } else objectStore.add(chatInfo);
             transaction.addEventListener('complete', () => {
-                displayChatHistory();
+                displayChatHistory(id);
                 alert("Saved Successfully!");
             });
             transaction.addEventListener('error', () => alert("Unable to save chat"));
@@ -146,13 +153,14 @@ function loadChat(button) {
     });
 }
 
-function displayChatHistory() {
+function displayChatHistory(reselect_id) {
     chatHistory.innerHTML = '';
     const objectStore = db.transaction('chat_history').objectStore('chat_history');
     objectStore.openCursor().addEventListener('success', (e) => {
         const cursor = e.target.result;
         if (cursor) {
-            createChatHistoryEntry(cursor.value.title, cursor.value.id);
+            const button = createChatHistoryEntry(cursor.value.title, cursor.value.id);
+            if (cursor.value.id === reselect_id) button.classList.add('selected');
             cursor.continue();
         } else {
             if (!chatHistory.firstElementChild) chatHistory.textContent = 'No chat history';
@@ -166,6 +174,7 @@ function createChatHistoryEntry(title, id) {
     button.setAttribute('data-id', id);
     button.addEventListener('click', () => loadChat(button));
     chatHistory.appendChild(button);
+    return button
 }
 
 async function getModels() {
