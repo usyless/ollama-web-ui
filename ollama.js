@@ -1,4 +1,8 @@
-const api_address = 'http://localhost:11434';
+let api_address = window.localStorage.getItem('api_address');
+if (!api_address) {
+    api_address = 'http://localhost:11434';
+}
+
 const modelSelect = document.getElementById('modelSelect');
 const input = document.querySelector('textarea');
 const sendButton = document.getElementById('sendChatButton');
@@ -79,6 +83,19 @@ document.addEventListener('DOMContentLoaded', () => {
             newChatButton.click();
         } else alert("No chat to delete!");
     });
+    document.getElementById('settings').addEventListener('click', () => {
+        document.getElementById('settingsPage').classList.remove('hidden');
+        document.getElementById('main').classList.add('hidden');
+    });
+    document.querySelector('#settingsPage button').addEventListener('click', (e) => {
+        document.getElementById('main').classList.remove('hidden');
+        document.getElementById('settingsPage').classList.add('hidden');
+    });
+    document.getElementById('hostName').addEventListener('input', (e) => {
+        api_address = e.target.value;
+        window.localStorage.setItem('api_address', api_address);
+    });
+    document.getElementById('hostName').value = api_address;
 
     loadModels();
 });

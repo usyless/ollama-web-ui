@@ -189,7 +189,16 @@ body {
 #settingsPage {
     z-index: 99999;
     position: absolute;
-    padding: var(--padding-larger);
+    background-color: var(--secondary);
+    border-radius: var(--radius-larger);
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+}
+
+#settingsPage input, #settingsPage button {
+    background-color: var(--primary);
 }
 
 hr {
@@ -229,6 +238,6 @@ hr {
     border: 3px solid var(--quaternary);
 }
 
-.hidden {
+div.hidden {
     display: none;
 }
