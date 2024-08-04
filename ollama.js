@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sendButton.addEventListener('click', () => {
         if (!responding) {
             createChatBubble(true);
+            saveChat();
             postMessage();
         }
     });
@@ -59,33 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
         input.value = '';
         sendButton.textContent = 'Send';
         input.focus();
-    });
-    document.getElementById('saveChat').addEventListener('click', (e) => {
-        const messages = chat.children;
-        if (messages.length > 0) {
-            const chatInfo = {
-                title: messages[0].textContent,
-                context: currentContext,
-                messages: Array.from(chat.children).map((el) => el.textContent)
-            }
-            let id = chat.getAttribute('data-id');
-            const transaction = db.transaction(['chat_history'], "readwrite");
-            const objectStore = transaction.objectStore('chat_history');
-            if (id) {
-                id = Number(id);
-                objectStore.get(id).addEventListener('success', (e) => {
-                    const result = e.target.result;
-                    result.context = currentContext;
-                    result.messages = chatInfo.messages;
-                    objectStore.put(result);
-                });
-            } else objectStore.add(chatInfo);
-            transaction.addEventListener('complete', () => {
-                displayChatHistory(id);
-                alert("Saved Successfully!");
-            });
-            transaction.addEventListener('error', () => alert("Unable to save chat"));
-        } else alert("No chat to save!");
     });
     document.getElementById('deleteChat').addEventListener('click', (e) => {
         const id = chat.getAttribute('data-id');
@@ -117,6 +91,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }).catch(() => alert('Unable to find models, are you sure ollama is running and allowed for this domain?'));
 });
 
+function saveChat() {
+    const messages = chat.children;
+    if (messages.length > 0) {
+        const chatInfo = {
+            title: messages[0].textContent,
+            context: currentContext,
+            messages: Array.from(chat.children).map((el) => el.textContent)
+        }
+        let id = chat.getAttribute('data-id');
+        const transaction = db.transaction(['chat_history'], "readwrite");
+        const objectStore = transaction.objectStore('chat_history');
+        if (id) {
+            id = Number(id);
+            objectStore.get(id).addEventListener('success', (e) => {
+                const result = e.target.result;
+                result.context = currentContext;
+                result.messages = chatInfo.messages;
+                objectStore.put(result);
+            });
+        } else objectStore.add(chatInfo);
+        transaction.addEventListener('complete', () => {
+            if (!id) displayChatHistory(id);
+        });
+        transaction.addEventListener('error', () => alert("Unable to save chat"));
+    } else alert("No chat to save!");
+}
+
 function createChatBubble(user) {
     const segment = document.createElement('div');
     const bubble = document.createElement('div');
@@ -132,6 +133,7 @@ function createChatBubble(user) {
     segment.classList.add('chatSegment');
     segment.appendChild(bubble);
     chat.appendChild(segment);
+    segment.scrollIntoView({behavior: 'smooth', block: 'end'});
     return bubble;
 }
 
@@ -155,8 +157,8 @@ function loadChat(button) {
 
 function displayChatHistory(reselect_id) {
     chatHistory.innerHTML = '';
-    const objectStore = db.transaction('chat_history').objectStore('chat_history');
-    objectStore.openCursor().addEventListener('success', (e) => {
+    const transaction = db.transaction('chat_history');
+    transaction.objectStore('chat_history').openCursor().addEventListener('success', (e) => {
         const cursor = e.target.result;
         if (cursor) {
             const button = createChatHistoryEntry(cursor.value.title, cursor.value.id);
@@ -164,6 +166,12 @@ function displayChatHistory(reselect_id) {
             cursor.continue();
         } else {
             if (!chatHistory.firstElementChild) chatHistory.textContent = 'No chat history';
+        }
+    });
+    transaction.addEventListener('complete', () => {
+        if (!reselect_id && chat.children.length > 0) {
+            chatHistory.lastElementChild.classList.add('selected');
+            chat.setAttribute('data-id', chatHistory.lastElementChild.getAttribute('data-id'));
         }
     });
 }
@@ -229,6 +237,7 @@ async function postMessage() {
             sendButton.textContent = 'Send';
             sendButton.removeEventListener('click', cancelButtonCallback);
             responding = false;
+            saveChat();
             input.focus();
         }
     }
