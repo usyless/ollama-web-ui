@@ -183,6 +183,7 @@ function loadChat(button) {
             bubble.textContent = message;
             ++i;
         }
+        chat.lastElementChild.scrollIntoView({behavior: 'smooth', block: 'end'});
     });
 }
 
