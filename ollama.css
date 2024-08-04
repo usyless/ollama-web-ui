@@ -49,6 +49,20 @@ body {
     column-gap: var(--spacing);
 }
 
+#modelSelect {
+    flex: 1;
+    background: transparent;
+    box-sizing: border-box;
+    border: 3px solid var(--tertiary);
+    border-radius: var(--radius);
+}
+
+#modelSelect > option {
+    background-color: var(--tertiary);
+    border: none;
+    outline: none;
+}
+
 #chatOuterContainer {
     flex-grow: 1;
     display: flex;
@@ -137,4 +151,8 @@ body {
 hr {
     margin-left: 0;
     margin-right: 0;
+}
+
+.flex {
+    display: flex;
 }
