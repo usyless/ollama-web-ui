@@ -12,6 +12,12 @@ let responding = false;
 
 let db;
 
+if (!window.localStorage.getItem('firstEntry')) {
+    alert(`Welcome!
+Make sure to add OLLAMA_HOST=${window.location.hostname} to your environment variables and relaunch ollama for this website to work!`);
+    window.localStorage.setItem('firstEntry', 'h');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const dbOpen = window.indexedDB.open("chat_history", 1);
     dbOpen.addEventListener("error", () => console.error("Database failed to open"));
@@ -74,6 +80,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else alert("No chat to delete!");
     });
 
+    loadModels();
+});
+
+function loadModels(models) {
     getModels().then((models) => {
         for (const model of models) {
             const option = document.createElement('option');
@@ -88,8 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.localStorage.setItem('model', modelSelect.value);
             });
         }
-    }).catch(() => alert('Unable to find models, are you sure ollama is running and allowed for this domain?'));
-});
+    }).catch(() => {
+        if (confirm(`Unable to find models, are you sure ollama is running and allowed for this domain? (add OLLAMA_HOST=${window.location.hostname} to your environment variables and relaunch ollama, then press OK)`)) {
+            loadModels();
+        }
+    });
+}
 
 function saveChat() {
     const messages = chat.children;
@@ -215,6 +229,7 @@ async function postMessage() {
                     model: modelSelect.value,
                     prompt: prompt,
                     context: currentContext
+                    // TODO: add options, such as context size, default prompt
                 }),
                 signal: controller.signal
             });

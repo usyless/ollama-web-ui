@@ -181,8 +181,15 @@ body {
 #chatBox > div > button:hover {
     background-color: var(--quaternary);
 }
+
 #chatBox > div > button:active {
     background-color: var(--secondary);
+}
+
+#settingsPage {
+    z-index: 99999;
+    position: absolute;
+    padding: var(--padding-larger);
 }
 
 hr {
@@ -220,4 +227,8 @@ hr {
 
 #chatHistory button.selected {
     border: 3px solid var(--quaternary);
+}
+
+.hidden {
+    display: none;
 }
