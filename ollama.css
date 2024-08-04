@@ -64,6 +64,7 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 200px;
 }
 
 #sidebar button:hover {
@@ -80,6 +81,7 @@ body {
     justify-content: start;
     overflow-y: scroll;
     flex: 1;
+    row-gap: var(--spacing);
 }
 
 #modelSelect {
@@ -212,4 +214,8 @@ hr {
 .responseBubble {
     background-color: var(--quaternary);
     float: left;
+}
+
+#chatHistory button.selected {
+    border: 3px solid var(--quaternary);
 }

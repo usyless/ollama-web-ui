@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     newChatButton.addEventListener('click', () => {
         if (responding) sendButton.click();
+        chatHistory.querySelectorAll('.selected').forEach((element) => element.classList.remove('selected'));
         currentContext = [];
         chat.removeAttribute('data-id');
         responding = false;
@@ -72,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const transaction = db.transaction(['chat_history'], "readwrite");
             const objectStore = transaction.objectStore('chat_history');
             objectStore.add(chatInfo);
-            transaction.addEventListener('success', () => {
+            transaction.addEventListener('complete', () => {
                 displayChatHistory();
                 alert("Saved Successfully!");
             });
@@ -83,10 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = chat.getAttribute('data-id');
         if (id != null) {
             const transaction = db.transaction(['chat_history'], "readwrite");
-            const objectStore = transaction.objectStore('chat_history');
-            objectStore.delete(id);
+            transaction.objectStore('chat_history').delete(Number(id));
             transaction.addEventListener('complete', () => {
-                document.querySelector(`button[data-id=${id}]`).remove();
+                document.querySelector(`button[data-id="${id}"]`).remove();
                 if (!chatHistory.firstElementChild) chatHistory.textContent = 'No chat history';
             });
             newChatButton.click();
@@ -114,21 +114,35 @@ function createChatBubble(user) {
     const segment = document.createElement('div');
     const bubble = document.createElement('div');
     bubble.classList.add('chatBubble', 'userBubble');
-    if (user) bubble.classList.add('userBubble');
-    else bubble.classList.add('responseBubble');
-    bubble.textContent = input.value;
+    if (user) {
+        bubble.classList.add('userBubble');
+        bubble.textContent = input.value;
+    }
+    else {
+        bubble.classList.add('responseBubble');
+        bubble.textContent = 'Generating response...';
+    }
     segment.classList.add('chatSegment');
     segment.appendChild(bubble);
     chat.appendChild(segment);
     return bubble;
 }
 
-function loadChat(id) {
+function loadChat(button) {
     newChatButton.click();
-    const transaction = db.transaction(['chat_history'], "readonly");
-    const objectStore = transaction.objectStore('chat_history');
+    const id = Number(button.getAttribute('data-id'));
+    chat.setAttribute('data-id', id.toString());
+    button.classList.add('selected');
+    const objectStore = db.transaction(['chat_history'], "readonly").objectStore('chat_history');
     objectStore.get(id).addEventListener('success', (e) => {
-        console.log(e.target.result);
+        const result = e.target.result;
+        currentContext = result.context;
+        let i = 0;
+        for (const message of result.messages) {
+            const bubble = i % 2 === 0 ? createChatBubble(true) : createChatBubble(false);
+            bubble.textContent = message;
+            ++i;
+        }
     });
 }
 
@@ -138,7 +152,7 @@ function displayChatHistory() {
     objectStore.openCursor().addEventListener('success', (e) => {
         const cursor = e.target.result;
         if (cursor) {
-            createChatHistoryEntry(cursor.title, cursor.id);
+            createChatHistoryEntry(cursor.value.title, cursor.value.id);
             cursor.continue();
         } else {
             if (!chatHistory.firstElementChild) chatHistory.textContent = 'No chat history';
@@ -150,7 +164,7 @@ function createChatHistoryEntry(title, id) {
     const button = document.createElement('button');
     button.textContent = title;
     button.setAttribute('data-id', id);
-    button.addEventListener('click', () => loadChat(id));
+    button.addEventListener('click', () => loadChat(button));
     chatHistory.appendChild(button);
 }
 
@@ -161,6 +175,7 @@ async function getModels() {
 async function postMessage() {
     const prompt = input.value;
     if (prompt.length > 0) {
+        const output = createChatBubble(false);
         input.value = '';
         input.disabled = true;
         sendButton.textContent = 'Stop Responding';
@@ -189,7 +204,7 @@ async function postMessage() {
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            const output = createChatBubble(false);
+            output.textContent = '';
             let chunk;
 
             while (true) {
