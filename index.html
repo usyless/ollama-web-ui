@@ -11,10 +11,17 @@
     <meta name="keywords" content="usy, ollama, ollama web ui, llm, local llm">
     <link rel="stylesheet" href="ollama.css">
 </head>
-<body class="relative">
+<body>
     <div id="main">
-        <div id="sidebar" class="flex flex-column padExtra">
+        <div id="sidebar">
             <h1>Ollama Web UI</h1>
+            <div>
+                <label>
+                    Model:
+                    <select id="modelSelect"></select>
+                </label>
+            </div>
+            <hr>
         </div>
         <div id="chatOuterContainer">
             <div id="chatContainer">
@@ -22,11 +29,14 @@
 
                 </div>
                 <div id="chatBox">
-                    <input type="text">
-                    <button>#</button>
+                    <div>
+                        <textarea placeholder="Send a message." rows="1"></textarea>
+                        <button>Send</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+<script src="ollama.js"></script>
 </body>
 </html>
