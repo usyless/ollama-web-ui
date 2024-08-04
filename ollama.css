@@ -66,6 +66,7 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 200px;
+    min-height: 35px;
 }
 
 #sidebar button:hover {

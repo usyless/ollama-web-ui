@@ -10,3 +10,4 @@ Available at https://usyless.uk/ollama-web-ui
 - Code embeds
 - Markdown support
 - Better popups
+- Chat history that actually scrolls

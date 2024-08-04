@@ -42,19 +42,25 @@ document.addEventListener('DOMContentLoaded', () => {
         chatHistoryStore.createIndex('messages', 'messages', { unique: false });
     });
 
-
     input.addEventListener('input', (e) => {
         e.target.style.height = 'auto';
         e.target.style.height = `${e.target.scrollHeight}px`;
     });
+    let holding_shift = false;
     input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Shift') holding_shift = true;
+        else if (e.key === 'Enter' && !holding_shift) {
             e.preventDefault();
             sendButton.click();
         }
     });
+    input.addEventListener('keyup', (e) => {
+        if (e.key === 'Shift') holding_shift = false
+    });
+    input.addEventListener('focusout', () => holding_shift = false);
+    document.addEventListener('visibilitychange', () => holding_shift = false);
     sendButton.addEventListener('click', () => {
-        if (!responding) {
+        if (!responding && input.value.length > 0) {
             createChatBubble(true);
             saveChat();
             postMessage();
@@ -68,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
         responding = false;
         chat.innerHTML = '';
         input.value = '';
+        input.dispatchEvent(new Event('input'));
         sendButton.textContent = 'Send';
         input.focus();
     });
@@ -226,6 +233,7 @@ async function postMessage() {
     if (prompt.length > 0) {
         const output = createChatBubble(false);
         input.value = '';
+        input.dispatchEvent(new Event('input'));
         input.disabled = true;
         sendButton.textContent = 'Stop Responding';
         const controller = new AbortController();
