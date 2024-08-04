@@ -1,8 +1,8 @@
 :root {
-    --primary: #161616;
-    --secondary: #232323;
-    --tertiary: #303030;
-    --quaternary: #494949FF;
+    --primary: #1e1f22;
+    --secondary: #2b2d30;
+    --tertiary: #3c3e43;
+    --quaternary: #565860;
 
     --white: #fefefe;
     --grey: #c6c6c6;
@@ -48,7 +48,32 @@ body {
     flex-direction: column;
     padding: var(--padding-larger);
     box-sizing: border-box;
-    column-gap: var(--spacing);
+    row-gap: var(--smaller-spacing);
+}
+
+#sidebar button {
+    background-color: var(--tertiary);
+    border: none;
+    box-sizing: border-box;
+    transition: 50ms ease-in-out;
+    cursor: pointer;
+    border-radius: var(--radius);
+    font-size: 16px;
+    padding: var(--padding);
+}
+
+#sidebar button:hover {
+    background-color: var(--quaternary);
+}
+#sidebar button:active {
+    background-color: var(--secondary);
+}
+
+#chatHistory {
+    display: flex;
+    flex-direction: column-reverse;
+    overflow-y: scroll;
+    flex: 1;
 }
 
 #modelSelect {
@@ -82,9 +107,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    background-color: var(--secondary);
-    border: 0 solid transparent;
-    border-radius: var(--radius-larger);
+    background-color: var(--primary);
 }
 
 #chat {
@@ -142,13 +165,6 @@ body {
     padding: 0 var(--spacing);
     box-sizing: border-box;
     transition: 50ms ease-in-out;
-}
-
-#chatBox > div > button {
-    border: none;
-    background-color: var(--tertiary);
-    padding: 0 var(--spacing);
-    box-sizing: border-box;
     cursor: pointer;
 }
 

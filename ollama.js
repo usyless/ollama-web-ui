@@ -2,13 +2,24 @@ const api_address = 'http://localhost:11434';
 const modelSelect = document.getElementById('modelSelect');
 const input = document.querySelector('textarea');
 const sendButton = document.getElementById('sendChatButton');
+const newChatButton = document.getElementById('newChatButton');
+const chatHistory = document.getElementById('chatHistory');
 
 const chat = document.getElementById('chat');
 let currentContext = [];
 
 let responding = false;
 
+let db;
+
 document.addEventListener('DOMContentLoaded', () => {
+    const dbOpen = window.indexedDB.open("chat_history", 1);
+    dbOpen.addEventListener("error", () => console.error("Database failed to open"));
+    dbOpen.addEventListener("success", () => {
+        db = dbOpen.result;
+    });
+
+
     input.addEventListener('input', (e) => {
         e.target.style.height = 'auto';
         e.target.style.height = `${e.target.scrollHeight}px`;
@@ -16,14 +27,22 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            sendButton.dispatchEvent(new Event('click'));
+            sendButton.click();
         }
     });
     sendButton.addEventListener('click', () => {
         if (!responding) {
-            createChat(true);
+            createChatBubble(true);
             postMessage();
         }
+    });
+    newChatButton.addEventListener('click', () => {
+        if (responding) sendButton.click();
+        // do new chat stuff here
+        responding = false;
+        chat.innerHTML = '';
+        input.value = '';
+        sendButton.textContent = 'Send';
     });
 
     getModels().then((models) => {
@@ -34,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modelSelect.appendChild(option);
 
             const previous_model = window.localStorage.getItem('model');
-            if (previous_model != null) modelSelect.value = previous_model;
+            if (previous_model != null && models.includes(previous_model)) modelSelect.value = previous_model;
 
             modelSelect.addEventListener('change', () => {
                 window.localStorage.setItem('model', modelSelect.value);
@@ -43,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }).catch(() => alert('Unable to find models, are you sure ollama is running and allowed for this domain?'));
 });
 
-function createChat(user) {
+function createChatBubble(user) {
     const segment = document.createElement('div');
     const bubble = document.createElement('div');
     bubble.classList.add('chatBubble', 'userBubble');
@@ -54,6 +73,19 @@ function createChat(user) {
     segment.appendChild(bubble);
     chat.appendChild(segment);
     return bubble;
+}
+
+function loadChat() {
+
+}
+
+function showChatHistory() {
+    const button = document.createElement('button');
+    button.textContent= 'Hi'; // get chat name from db
+    button.addEventListener('click', (e) => {
+
+    }); // do on click stuff, switching to that chat window
+    chatHistory.appendChild(button);
 }
 
 async function getModels() {
@@ -91,7 +123,7 @@ async function postMessage() {
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            const output = createChat(false);
+            const output = createChatBubble(false);
             let chunk;
 
             while (true) {
