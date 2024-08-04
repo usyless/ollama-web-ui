@@ -60,11 +60,16 @@ body {
     border-radius: var(--radius);
     font-size: 16px;
     padding: var(--padding);
+    word-wrap: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #sidebar button:hover {
     background-color: var(--quaternary);
 }
+
 #sidebar button:active {
     background-color: var(--secondary);
 }
@@ -72,6 +77,7 @@ body {
 #chatHistory {
     display: flex;
     flex-direction: column-reverse;
+    justify-content: start;
     overflow-y: scroll;
     flex: 1;
 }

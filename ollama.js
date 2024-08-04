@@ -17,6 +17,19 @@ document.addEventListener('DOMContentLoaded', () => {
     dbOpen.addEventListener("error", () => console.error("Database failed to open"));
     dbOpen.addEventListener("success", () => {
         db = dbOpen.result;
+        displayChatHistory();
+    });
+    dbOpen.addEventListener("upgradeneeded", (e) => {
+        db = e.target.result;
+
+        const chatHistoryStore = db.createObjectStore("chat_history", {
+            keyPath: "id",
+            autoIncrement: true,
+        });
+
+        chatHistoryStore.createIndex('name', 'name', { unique: false });
+        chatHistoryStore.createIndex('context', 'context', { unique: false });
+        chatHistoryStore.createIndex('messages', 'messages', { unique: false });
     });
 
 
@@ -38,11 +51,46 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     newChatButton.addEventListener('click', () => {
         if (responding) sendButton.click();
-        // do new chat stuff here
+        currentContext = [];
+        chat.removeAttribute('data-id');
         responding = false;
         chat.innerHTML = '';
         input.value = '';
         sendButton.textContent = 'Send';
+        input.focus();
+    });
+    document.getElementById('saveChat').addEventListener('click', (e) => {
+        const messages = chat.children;
+        if (messages.length > 0) {
+            const chatInfo = {
+                title: messages[0].textContent,
+                context: currentContext,
+                messages: Array.from(chat.children).map((el) => el.textContent)
+            }
+            const id = chat.getAttribute('data-id');
+            if (id) chatInfo.id = id;
+            const transaction = db.transaction(['chat_history'], "readwrite");
+            const objectStore = transaction.objectStore('chat_history');
+            objectStore.add(chatInfo);
+            transaction.addEventListener('success', () => {
+                displayChatHistory();
+                alert("Saved Successfully!");
+            });
+            transaction.addEventListener('error', () => alert("Unable to save chat"));
+        } else alert("No chat to save!");
+    });
+    document.getElementById('deleteChat').addEventListener('click', (e) => {
+        const id = chat.getAttribute('data-id');
+        if (id != null) {
+            const transaction = db.transaction(['chat_history'], "readwrite");
+            const objectStore = transaction.objectStore('chat_history');
+            objectStore.delete(id);
+            transaction.addEventListener('complete', () => {
+                document.querySelector(`button[data-id=${id}]`).remove();
+                if (!chatHistory.firstElementChild) chatHistory.textContent = 'No chat history';
+            });
+            newChatButton.click();
+        } else alert("No chat to delete!");
     });
 
     getModels().then((models) => {
@@ -53,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modelSelect.appendChild(option);
 
             const previous_model = window.localStorage.getItem('model');
-            if (previous_model != null && models.includes(previous_model)) modelSelect.value = previous_model;
+            if (previous_model != null && models.map((m) => m.name).includes(previous_model)) modelSelect.value = previous_model;
 
             modelSelect.addEventListener('change', () => {
                 window.localStorage.setItem('model', modelSelect.value);
@@ -75,16 +123,34 @@ function createChatBubble(user) {
     return bubble;
 }
 
-function loadChat() {
-
+function loadChat(id) {
+    newChatButton.click();
+    const transaction = db.transaction(['chat_history'], "readonly");
+    const objectStore = transaction.objectStore('chat_history');
+    objectStore.get(id).addEventListener('success', (e) => {
+        console.log(e.target.result);
+    });
 }
 
-function showChatHistory() {
-    const button = document.createElement('button');
-    button.textContent= 'Hi'; // get chat name from db
-    button.addEventListener('click', (e) => {
+function displayChatHistory() {
+    chatHistory.innerHTML = '';
+    const objectStore = db.transaction('chat_history').objectStore('chat_history');
+    objectStore.openCursor().addEventListener('success', (e) => {
+        const cursor = e.target.result;
+        if (cursor) {
+            createChatHistoryEntry(cursor.title, cursor.id);
+            cursor.continue();
+        } else {
+            if (!chatHistory.firstElementChild) chatHistory.textContent = 'No chat history';
+        }
+    });
+}
 
-    }); // do on click stuff, switching to that chat window
+function createChatHistoryEntry(title, id) {
+    const button = document.createElement('button');
+    button.textContent = title;
+    button.setAttribute('data-id', id);
+    button.addEventListener('click', () => loadChat(id));
     chatHistory.appendChild(button);
 }
 
