@@ -196,9 +196,14 @@ body {
     height: 100vh;
     max-width: 100vw;
     max-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    row-gap: var(--spacing);
 }
 
-#settingsPage input, #settingsPage button {
+#settingsPage input, #settingsPage button, #settingsPage textarea {
     background-color: var(--primary);
 }
 
@@ -237,8 +242,4 @@ hr {
 
 #chatHistory button.selected {
     border: 3px solid var(--quaternary);
-}
-
-div.hidden {
-    display: none;
 }

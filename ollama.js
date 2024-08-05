@@ -1,10 +1,43 @@
-let api_address = window.localStorage.getItem('api_address');
-if (!api_address) {
-    api_address = 'http://localhost:11434';
+let api_address = {
+        value: null,
+        default_value: 'http://localhost:11434',
+        id: 'api_address'
+    },
+    context_length = {
+        value: null,
+        default_value: null,
+        id: 'context_length',
+    },
+    system_prompt = {
+        value: null,
+        default_value: null,
+        id: 'system_prompt',
+    },
+    temperature = {
+        value: null,
+        default_value: null,
+        id: 'temperature',
+    };
+
+for (let setting of [api_address, context_length, system_prompt, temperature]) {
+    const elem = document.getElementById(setting.id);
+    setting.value = window.localStorage.getItem(setting.id) || setting.default_value;
+    if (setting.value !== setting.default_value) elem.value = setting.value;
+
+    elem.addEventListener('input', (e) => {
+        const newValue = e.target.value;
+        if (newValue !== setting.default_value && newValue.length > 0) {
+            window.localStorage.setItem(setting.id, newValue);
+            setting.value = newValue;
+        } else {
+            window.localStorage.removeItem(setting.id);
+            setting.value = setting.default_value;
+        }
+    });
 }
 
 const modelSelect = document.getElementById('modelSelect');
-const input = document.querySelector('textarea');
+const input = document.getElementById('input');
 const sendButton = document.getElementById('sendChatButton');
 const newChatButton = document.getElementById('newChatButton');
 const chatHistory = document.getElementById('chatHistory');
@@ -91,18 +124,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else alert("No chat to delete!");
     });
     document.getElementById('settings').addEventListener('click', () => {
-        document.getElementById('settingsPage').classList.remove('hidden');
-        document.getElementById('main').classList.add('hidden');
+        document.getElementById('settingsPage').removeAttribute('style');
+        document.getElementById('main').style.display = 'none';
     });
     document.querySelector('#settingsPage button').addEventListener('click', (e) => {
-        document.getElementById('main').classList.remove('hidden');
-        document.getElementById('settingsPage').classList.add('hidden');
+        document.getElementById('main').removeAttribute('style');
+        document.getElementById('settingsPage').style.display = 'none';
     });
-    document.getElementById('hostName').addEventListener('input', (e) => {
-        api_address = e.target.value;
-        window.localStorage.setItem('api_address', api_address);
-    });
-    document.getElementById('hostName').value = api_address;
 
     loadModels();
 });
@@ -225,7 +253,7 @@ function createChatHistoryEntry(title, id) {
 }
 
 async function getModels() {
-    return (await (await fetch(`${api_address}/api/tags`)).json())['models'];
+    return (await (await fetch(`${api_address.value}/api/tags`)).json())['models'];
 }
 
 async function postMessage() {
@@ -246,17 +274,23 @@ async function postMessage() {
             responding = true;
             sendButton.addEventListener('click', cancelButtonCallback, {once: true});
 
-            const response = await fetch(`${api_address}/api/generate`, {
+            const body = {
+                model: modelSelect.value,
+                prompt: prompt,
+                context: currentContext,
+                options: {}
+            }
+
+            if (context_length.value != null) body.options.num_ctx = parseInt(context_length.value);
+            if (temperature.value != null) body.options.temperature = parseInt(temperature.value);
+            if (system_prompt.value != null) body.system = system_prompt.value;
+
+            const response = await fetch(`${api_address.value}/api/generate`, {
                 method: 'POST',
                 headers: {
                     'content-type': 'application/json',
                 },
-                body: JSON.stringify({
-                    model: modelSelect.value,
-                    prompt: prompt,
-                    context: currentContext
-                    // TODO: add options, such as context size, default prompt
-                }),
+                body: JSON.stringify(body),
                 signal: controller.signal
             });
 
