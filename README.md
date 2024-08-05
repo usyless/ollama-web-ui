@@ -6,6 +6,5 @@ Available at https://usyless.uk/ollama-web-ui
 
 ### In progress
 - Prettier settings page
-- Code embeds -> e.g. single backtick, triple backtick
 - Markdown support -> bold, lists (*)
 - Better popups

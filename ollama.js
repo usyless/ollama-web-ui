@@ -179,7 +179,7 @@ function saveChat() {
         const chatInfo = {
             title: messages[0].textContent,
             context: currentContext,
-            messages: Array.from(chat.children).map((el) => el.textContent)
+            messages: Array.from(chat.children).map((el) => el.firstElementChild.getAttribute('original'))
         }
         let id = chat.getAttribute('data-id');
         const transaction = db.transaction(['chat_history'], "readwrite");
@@ -204,17 +204,16 @@ function saveChat() {
     }
 }
 
-function createChatBubble(user) {
+function createChatBubble(user, no_default_text) {
     const segment = document.createElement('div');
     const bubble = document.createElement('div');
     bubble.classList.add('chatBubble');
     if (user) {
         bubble.classList.add('userBubble');
-        bubble.textContent = input.value;
-    }
-    else {
+        if (!no_default_text) setChatBubbleText(bubble, input.value);
+    } else {
         bubble.classList.add('responseBubble');
-        bubble.textContent = 'Generating response...';
+        if (!no_default_text) setChatBubbleText(bubble, 'Generating response...');
     }
     segment.classList.add('chatSegment');
     segment.appendChild(bubble);
@@ -236,8 +235,14 @@ function loadChat(button) {
         chatWith.textContent = currentModel;
         let i = 0;
         for (const message of result.messages) {
-            const bubble = i % 2 === 0 ? createChatBubble(true) : createChatBubble(false);
-            bubble.textContent = message;
+            if (i % 2 === 0) {
+                const bubble = createChatBubble(true);
+                setChatBubbleText(bubble, message);
+            } else {
+                const bubble = createChatBubble(false, true);
+                bubble.setAttribute('original', message);
+                formatBubble(bubble);
+            }
             ++i;
         }
         chat.lastElementChild.scrollIntoView({behavior: 'instant', block: 'end'});
@@ -269,6 +274,7 @@ function displayChatHistory(reselect_id) {
 function createChatHistoryEntry(title, id) {
     const button = document.createElement('button');
     button.textContent = title;
+    button.classList.add('standardButton');
     button.setAttribute('data-id', id);
     button.addEventListener('click', () => loadChat(button));
     chatHistory.appendChild(button);
@@ -336,6 +342,8 @@ async function postMessage() {
                 }
             }
         } finally {
+            output.setAttribute('original', output.textContent);
+            formatBubble(output);
             input.disabled = false;
             sendButton.textContent = 'Send';
             sendButton.removeEventListener('click', cancelButtonCallback);
@@ -344,4 +352,74 @@ async function postMessage() {
             input.focus();
         }
     }
+}
+
+function setChatBubbleText(bubble, text) {
+    bubble.textContent = text;
+    bubble.setAttribute('original', text);
+}
+
+function formatBubble(bubble) {
+    bubble.innerHTML = '';
+    try {
+        bubble.append(...getFormatted(bubble.getAttribute('original')));
+    } catch (e) {
+        bubble.innerHTML = '';
+        bubble.textContent = bubble.getAttribute('original');
+        console.error('Failed to format text', e);
+    }
+}
+
+const big_code_block = /```.*?\n```/gs;
+const small_code_block = /`.*?`/gs;
+
+// Return the text as an array of nodes to insert into an element
+function getFormatted(text) {
+    const output = [];
+
+    const big_code_matches = text.match(big_code_block);
+    let i = 0, j = 0;
+    for (let t of text.split(big_code_block)) {
+        while (t.substring(0, 1) === '\n') t = t.substring(2);
+        // inline code blocks
+        const small_code_matches = t.match(small_code_block);
+        for (const ts of t.split(small_code_block)) {
+            output.push(document.createTextNode(ts));
+            if (small_code_matches && small_code_matches[j]) {
+                const code = document.createElement('code');
+                code.textContent = small_code_matches[j].substring(1, small_code_matches[j].length - 1);
+                output.push(code);
+            }
+            ++j;
+        }
+
+        // multi line code blocks
+        if (big_code_matches && big_code_matches[i]) {
+            const d = document.createElement('div'),
+                pre = document.createElement('pre'),
+                code = document.createElement('code'),
+                info_div = document.createElement('div'),
+                language_div = document.createElement('div'),
+                copy_button = document.createElement('button');
+            d.classList.add('codeBlockLanguageOuter');
+            pre.appendChild(code);
+            const lines = big_code_matches[i].split('\n');
+            let language = lines[0].substring(3).trim();
+            if (language.length === 0) language = 'No Language Specified';
+            info_div.classList.add('codeBlockLanguage');
+            d.append(info_div, pre);
+            info_div.append(language_div, copy_button);
+            language_div.textContent = language;
+            language_div.classList.add('languageDiv');
+            copy_button.textContent = 'Copy';
+            copy_button.addEventListener('click', () => navigator.clipboard.writeText(code.textContent));
+            copy_button.classList.add('standardButton');
+            lines.shift();
+            lines.pop();
+            output.push(d);
+            code.textContent = lines.join('\n');
+        }
+        ++i;
+    }
+    return output;
 }
