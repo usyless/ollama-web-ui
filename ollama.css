@@ -78,11 +78,16 @@ body {
 }
 
 #chatHistory {
+    overflow-y: scroll;
+    flex: 1;
+}
+
+#chatHistory > div {
     display: flex;
     flex-direction: column-reverse;
     justify-content: start;
-    overflow-y: scroll;
-    flex: 1;
+    width: 100%;
+    max-height: none;
     row-gap: var(--spacing);
     text-align: center;
 }

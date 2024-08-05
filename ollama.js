@@ -40,7 +40,7 @@ const modelSelect = document.getElementById('modelSelect');
 const input = document.getElementById('input');
 const sendButton = document.getElementById('sendChatButton');
 const newChatButton = document.getElementById('newChatButton');
-const chatHistory = document.getElementById('chatHistory');
+const chatHistory = document.getElementById('chatHistory').firstElementChild;
 
 const chat = document.getElementById('chat');
 let currentContext = [];
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadModels();
 });
 
-function loadModels(models) {
+function loadModels() {
     getModels().then((models) => {
         for (const model of models) {
             const option = document.createElement('option');
@@ -181,7 +181,7 @@ function saveChat() {
             if (!id) displayChatHistory(id);
         });
         transaction.addEventListener('error', () => alert("Unable to save chat"));
-    } else alert("No chat to save!");
+    }
 }
 
 function createChatBubble(user) {
@@ -218,7 +218,7 @@ function loadChat(button) {
             bubble.textContent = message;
             ++i;
         }
-        chat.lastElementChild.scrollIntoView({behavior: 'smooth', block: 'end'});
+        chat.lastElementChild.scrollIntoView({behavior: 'instant', block: 'end'});
     });
 }
 
@@ -302,9 +302,11 @@ async function postMessage() {
             while (true) {
                 const {value, done} = await reader.read();
                 if (done) break;
-                chunk = JSON.parse(decoder.decode(value, {stream: true}));
-                output.textContent += chunk.response;
-                output.scrollIntoView({behavior: 'smooth', block: 'end'});
+                try {
+                    chunk = JSON.parse(decoder.decode(value, {stream: true}));
+                    output.textContent += chunk.response;
+                    output.scrollIntoView({behavior: 'smooth', block: 'end'});
+                } catch (e) {console.error(e);}
             }
             if (chunk.context != null) currentContext = chunk.context;
         } finally {
