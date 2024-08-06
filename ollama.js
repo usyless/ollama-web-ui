@@ -367,5 +367,7 @@ function formatBubble(bubble) {
         bubble.innerHTML = '';
         bubble.textContent = bubble.getAttribute('original');
         console.error('Failed to format text', e);
+    } finally {
+        bubble.scrollIntoView({behavior: 'smooth', block: 'end'});
     }
 }

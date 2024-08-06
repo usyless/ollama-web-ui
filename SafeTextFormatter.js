@@ -37,18 +37,33 @@
         cutoff: (t) => (t.substring(1, t.length - 1)),
         tag: 'i'
     }
+    const h6_regex = {
+        regex: /^######.*/gm,
+        cutoff: (t) => (t.substring(6)),
+        tag: 'h6'
+    }
+    const h5_regex = {
+        regex: /^#####.*/gm,
+        cutoff: (t) => (t.substring(5)),
+        tag: 'h5'
+    }
+    const h4_regex = {
+        regex: /^####.*/gm,
+        cutoff: (t) => (t.substring(4)),
+        tag: 'h4'
+    }
     const h3_regex = {
-        regex: /###.*/g,
+        regex: /^###.*/gm,
         cutoff: (t) => (t.substring(3)),
         tag: 'h3'
     }
     const h2_regex = {
-        regex: /##.*/g,
+        regex: /^##.*/gm,
         cutoff: (t) => (t.substring(2)),
         tag: 'h2'
     }
     const h1_regex = {
-        regex: /#.*/g,
+        regex: /^#.*/gm,
         cutoff: (t) => (t.substring(1)),
         tag: 'h1'
     }
@@ -78,13 +93,16 @@
         }
 
         regexIterator(text, big_code_block,
+(t) => regexIterator(t, h6_regex,
+    (t) => regexIterator(t, h5_regex,
+        (t) => regexIterator(t, h4_regex,
             (t) => regexIterator(t, h3_regex,
                 (t) => regexIterator(t, h2_regex,
                     (t) => regexIterator(t, h1_regex,
                         (t) => regexIterator(t, small_code_block,
                             (t) => regexIterator(t, bold_regex,
                                 (t) => regexIterator(t, italic_regex,
-                                    (t) => output.push(document.createTextNode(t)))))))));
+                                    (t) => output.push(document.createTextNode(t))))))))))));
 
         return output;
     }
