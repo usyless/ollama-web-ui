@@ -17,23 +17,39 @@ let api_address = {
         value: null,
         default_value: null,
         id: 'temperature',
+    },
+    enable_markdown = {
+        value: null,
+        default_value: true,
+        id: 'enable_markdown',
     };
 
-for (let setting of [api_address, context_length, system_prompt, temperature]) {
+for (let setting of [api_address, context_length, system_prompt, temperature, enable_markdown]) {
     const elem = document.getElementById(setting.id);
     setting.value = window.localStorage.getItem(setting.id) || setting.default_value;
     if (setting.value !== setting.default_value) elem.value = setting.value;
 
-    elem.addEventListener('input', (e) => {
-        const newValue = e.target.value;
-        if (newValue !== setting.default_value && newValue.length > 0) {
-            window.localStorage.setItem(setting.id, newValue);
-            setting.value = newValue;
-        } else {
-            window.localStorage.removeItem(setting.id);
-            setting.value = setting.default_value;
-        }
-    });
+    if (elem.type === 'checkbox') {
+        setting.value = setting.value !== 'false'
+        elem.checked = setting.value;
+        elem.addEventListener('change', (e) => {
+            setting.value = e.target.checked;
+            window.localStorage.setItem(setting.id, e.target.checked);
+            const s = document.querySelector('.selected');
+            if (s != null) loadChat(s);
+        });
+    } else {
+        elem.addEventListener('input', (e) => {
+            const newValue = e.target.value;
+            if (newValue !== setting.default_value && newValue.length > 0) {
+                window.localStorage.setItem(setting.id, newValue);
+                setting.value = newValue;
+            } else {
+                window.localStorage.removeItem(setting.id);
+                setting.value = setting.default_value;
+            }
+        });
+    }
 }
 
 const modelSelect = document.getElementById('modelSelect');
@@ -208,6 +224,7 @@ function createChatBubble(user, no_default_text) {
     const segment = document.createElement('div');
     const bubble = document.createElement('div');
     bubble.classList.add('chatBubble');
+    bubble.setAttribute('original', '');
     if (user) {
         bubble.classList.add('userBubble');
         if (!no_default_text) setChatBubbleText(bubble, input.value);
@@ -326,7 +343,7 @@ async function postMessage() {
             const decoder = new TextDecoder();
             output.textContent = '';
             let chunk;
-
+            setChatBubbleText(output, '');
             while (true) {
                 const {value, done} = await reader.read();
                 if (done) break;
@@ -335,15 +352,13 @@ async function postMessage() {
                     line = line.trim();
                     if (line.length > 0) {
                         line = JSON.parse(line);
-                        output.textContent += line.response;
-                        output.scrollIntoView({behavior: 'smooth', block: 'end'});
+                        output.setAttribute('original', output.getAttribute('original') + line.response);
+                        formatBubble(output);
                         if (line.context != null) currentContext = line.context;
                     }
                 }
             }
         } finally {
-            output.setAttribute('original', output.textContent);
-            formatBubble(output);
             input.disabled = false;
             sendButton.textContent = 'Send';
             sendButton.removeEventListener('click', cancelButtonCallback);
@@ -361,13 +376,7 @@ function setChatBubbleText(bubble, text) {
 
 function formatBubble(bubble) {
     bubble.innerHTML = '';
-    try {
-        bubble.append(...TextFormatter.getFormatted(bubble.getAttribute('original')));
-    } catch (e) {
-        bubble.innerHTML = '';
-        bubble.textContent = bubble.getAttribute('original');
-        console.error('Failed to format text', e);
-    } finally {
-        bubble.scrollIntoView({behavior: 'smooth', block: 'end'});
-    }
+    if (enable_markdown.value) bubble.append(...TextFormatter.getFormatted(bubble.getAttribute('original')));
+    else bubble.textContent = bubble.getAttribute('original');
+    bubble.scrollIntoView({behavior: 'smooth', block: 'end'});
 }
