@@ -77,26 +77,29 @@
         output.push(elem);
     }
 
-    function regexIterator(priority) {
-        priority = [...priority];
-        const replacementInfo = priority.shift();
-        if (replacementInfo) {
-            return (t) => {
-                const matches = t.match(replacementInfo.regex) || [], special = replacementInfo.special;
-                let iterator = 0;
-                for (const non_match of t.split(replacementInfo.regex)) {
-                    regexIterator(priority)(non_match);
-                    if (matches[iterator]) {
-                        if (!special) pushBasicElement(replacementInfo.tag, matches[iterator], replacementInfo.cutoff);
-                        else output.push(special(matches[iterator]))
-                    }
-                    ++iterator;
+    function regexIterator(replacementInfo, innerIterator) {
+        return (t) => {
+            const matches = t.match(replacementInfo.regex) || [], special = replacementInfo.special;
+            let iterator = 0;
+            for (const non_match of t.split(replacementInfo.regex)) {
+                innerIterator(non_match);
+                if (matches[iterator]) {
+                    if (!special) pushBasicElement(replacementInfo.tag, matches[iterator], replacementInfo.cutoff);
+                    else output.push(special(matches[iterator]))
                 }
+                ++iterator;
             }
-        } else return (t) => output.push(document.createTextNode(t));
+        }
     }
 
-    const iterator = regexIterator(
+    function regexIteratorBuilder(priority) {
+        priority = priority.reverse();
+        let lastIterator = (t) => output.push(document.createTextNode(t));
+        for (const regex of priority) lastIterator = regexIterator(regex, lastIterator);
+        return lastIterator;
+    }
+
+    const iterator = regexIteratorBuilder(
         [big_code_block, h6_regex, h5_regex, h4_regex, h3_regex, h2_regex, h1_regex, small_code_block, bold_regex, italic_regex]
     );
 
