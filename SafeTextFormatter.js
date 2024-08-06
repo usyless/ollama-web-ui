@@ -93,9 +93,8 @@
     }
 
     function regexIteratorBuilder(priority) {
-        priority = priority.reverse();
         let lastIterator = (t) => output.push(document.createTextNode(t));
-        for (const regex of priority) lastIterator = regexIterator(regex, lastIterator);
+        for (const regex of priority.reverse()) lastIterator = regexIterator(regex, lastIterator);
         return lastIterator;
     }
 
