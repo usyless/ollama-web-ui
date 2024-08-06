@@ -211,12 +211,12 @@ hr {
     display: flex;
 }
 
-.chatSegment {
+#chat .chatSegment {
     width: 100%;
 }
 
-.chatBubble {
-    background-color: var(--tertiary);
+#chat .chatBubble {
+    background-color: var(--secondary);
     border: none;
     border-radius: var(--radius);
     max-width: 80%;
@@ -226,7 +226,11 @@ hr {
     word-break: break-word;
 }
 
-pre {
+#chat h3, #chat h2, #chat h1 {
+    margin: var(--smaller-spacing) 0;
+}
+
+#chat pre {
     padding: var(--padding-larger);
     background-color: var(--primary);
     border-radius: var(--radius-larger);
@@ -234,11 +238,11 @@ pre {
     margin: 0;
 }
 
-pre code {
+#chat pre code {
     background-color: transparent;
 }
 
-code {
+#chat code {
     white-space: pre-wrap;
     word-break: break-word;
     background-color: var(--secondary);
@@ -246,30 +250,30 @@ code {
     border-radius: var(--radius);
 }
 
-.codeBlockLanguageOuter {
+#chat .codeBlockLanguageOuter {
     background-color: var(--secondary);
     border-radius: var(--radius-larger);
-    margin-bottom: 10px;
+    margin: var(--smaller-spacing) 0;
 }
 
-.codeBlockLanguage {
+#chat .codeBlockLanguage {
     box-sizing: border-box;
     padding: var(--padding) var(--padding-larger);
     display: flex;
     justify-content: space-between;
 }
 
-.languageDiv {
+#chat .languageDiv {
     margin-top: auto;
     margin-bottom: auto;
 }
 
-.userBubble {
+#chat .userBubble {
     float: right;
 }
 
-.responseBubble {
-    background-color: var(--quaternary);
+#chat .responseBubble {
+    background-color: var(--tertiary);
     float: left;
 }
 
