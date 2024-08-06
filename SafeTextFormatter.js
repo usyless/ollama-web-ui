@@ -69,41 +69,41 @@
     }
     // TODO: links
 
+    let output = [];
+
+    function pushBasicElement(tag, text, cutoff_func) {
+        const elem = document.createElement(tag);
+        elem.textContent = cutoff_func(text);
+        output.push(elem);
+    }
+
+    function regexIterator(priority) {
+        priority = [...priority];
+        const replacementInfo = priority.shift();
+        if (replacementInfo) {
+            return (t) => {
+                const matches = t.match(replacementInfo.regex) || [], special = replacementInfo.special;
+                let iterator = 0;
+                for (const non_match of t.split(replacementInfo.regex)) {
+                    regexIterator(priority)(non_match);
+                    if (matches[iterator]) {
+                        if (!special) pushBasicElement(replacementInfo.tag, matches[iterator], replacementInfo.cutoff);
+                        else output.push(special(matches[iterator]))
+                    }
+                    ++iterator;
+                }
+            }
+        } else return (t) => output.push(document.createTextNode(t));
+    }
+
+    const iterator = regexIterator(
+        [big_code_block, h6_regex, h5_regex, h4_regex, h3_regex, h2_regex, h1_regex, small_code_block, bold_regex, italic_regex]
+    );
+
     // Return the text as an array of nodes to insert into an element
     function getFormatted(text) {
-        const output = [];
-
-        function pushBasicElement(tag, text, cutoff_func) {
-            const elem = document.createElement(tag);
-            elem.textContent = cutoff_func(text);
-            output.push(elem);
-        }
-
-        function regexIterator(text, replacementInfo, innerIterator) {
-            const matches = text.match(replacementInfo.regex) || [], special = replacementInfo.special;
-            let iterator = 0;
-            for (const non_match of text.split(replacementInfo.regex)) {
-                innerIterator(non_match);
-                if (matches[iterator]) {
-                    if (!special) pushBasicElement(replacementInfo.tag, matches[iterator], replacementInfo.cutoff);
-                    else output.push(special(matches[iterator]))
-                }
-                ++iterator;
-            }
-        }
-
-        regexIterator(text, big_code_block,
-(t) => regexIterator(t, h6_regex,
-    (t) => regexIterator(t, h5_regex,
-        (t) => regexIterator(t, h4_regex,
-            (t) => regexIterator(t, h3_regex,
-                (t) => regexIterator(t, h2_regex,
-                    (t) => regexIterator(t, h1_regex,
-                        (t) => regexIterator(t, small_code_block,
-                            (t) => regexIterator(t, bold_regex,
-                                (t) => regexIterator(t, italic_regex,
-                                    (t) => output.push(document.createTextNode(t))))))))))));
-
+        output = [];
+        iterator(text);
         return output;
     }
 
