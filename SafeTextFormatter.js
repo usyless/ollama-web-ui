@@ -28,12 +28,12 @@
         tag: 'code'
     }
     const bold_regex = {
-        regex: /\*\*.*?\*\*/gs,
+        regex: /\*\*.*?\*\*/g,
         cutoff: (t) => (t.substring(2, t.length - 2)),
         tag: 'b'
     }
     const italic_regex = {
-        regex: /\*.*?\*/gs,
+        regex: /\*.*?\*/g,
         cutoff: (t) => (t.substring(1, t.length - 1)),
         tag: 'i'
     }
