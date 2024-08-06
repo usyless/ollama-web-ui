@@ -7,4 +7,3 @@ Available at https://usyless.uk/ollama-web-ui
 ### In progress
 - Prettier settings page
 - Markdown support -> bold, lists (*)
-- Better popups
