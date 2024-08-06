@@ -1,6 +1,6 @@
 (() => {
     const big_code_block = {
-        regex: /```.*?\n```/gs,
+        regex: /```.*?```/gs,
         special: (t) => {
             const holding_div = document.createElement('div'), pre = document.createElement('pre'), code = document.createElement('code'), info_div = document.createElement('div'), language_div = document.createElement('div'), copy_button = document.createElement('button');
             const lines = t.split('\n');
@@ -99,7 +99,7 @@
     }
 
     const iterator = regexIteratorBuilder(
-        [big_code_block, h6_regex, h5_regex, h4_regex, h3_regex, h2_regex, h1_regex, small_code_block, bold_regex, italic_regex]
+        [big_code_block, h6_regex, h5_regex, h4_regex, h3_regex, h2_regex, h1_regex, bold_regex, italic_regex, small_code_block]
     );
 
     // Return the text as an array of nodes to insert into an element
