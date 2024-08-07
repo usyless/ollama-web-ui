@@ -378,7 +378,7 @@
                 }
             } catch (e) {
                 if (e.message.includes('NetworkError') && await getMissingOllamaPopup()) loadModels();
-                else await Popups.createPopup('Refresh this page to use it!');
+                else loadModels();
             } finally {
                 input.disabled = false;
                 sendButton.textContent = 'Send';
