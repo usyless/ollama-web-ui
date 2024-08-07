@@ -247,7 +247,6 @@
         segment.classList.add('chatSegment');
         segment.appendChild(bubble);
         chat.appendChild(segment);
-        segment.scrollIntoView({behavior: 'smooth', block: 'end'});
         bubble.setUnformattedText = (t) => bubble.setAttribute('original', t);
         bubble.setVisibleText = (t) => {
             bubble.textContent = t;
@@ -269,6 +268,7 @@
             bubble.classList.add('responseBubble');
             if (!no_default_text) bubble.setVisibleText('Generating response...');
         }
+        segment.scrollIntoView({behavior: 'smooth', block: 'end'});
         return bubble;
     }
 
