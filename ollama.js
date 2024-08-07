@@ -214,7 +214,7 @@
             const chatInfo = {
                 title: messages[0].textContent,
                 context: currentContext,
-                messages: Array.from(chat.children).map((el) => el.firstElementChild.getAttribute('original'))
+                messages: Array.from(chat.children).map((el) => el.firstElementChild.getUnformattedText())
             }
             let id = chat.getAttribute('data-id');
             const transaction = db.transaction(['chat_history'], "readwrite");
@@ -244,30 +244,30 @@
         const bubble = document.createElement('div');
         bubble.classList.add('chatBubble');
         bubble.setAttribute('original', '');
+        segment.classList.add('chatSegment');
+        segment.appendChild(bubble);
+        chat.appendChild(segment);
+        segment.scrollIntoView({behavior: 'smooth', block: 'end'});
+        bubble.setUnformattedText = (t) => bubble.setAttribute('original', t);
+        bubble.setVisibleText = (t) => {
+            bubble.textContent = t;
+            bubble.setUnformattedText(t);
+        }
+        bubble.getUnformattedText = () => bubble.getAttribute('original');
+        bubble.format = (t) => {
+            if (t == null) t = bubble.getUnformattedText();
+            else bubble.setUnformattedText(t);
+            bubble.innerHTML = '';
+            if (enable_markdown.value) bubble.append(...TextFormatter.getFormatted(t));
+            else bubble.textContent = t;
+            bubble.scrollIntoView({behavior: 'smooth', block: 'end'});
+        }
         if (user) {
             bubble.classList.add('userBubble');
             if (!no_default_text) bubble.setVisibleText(input.value);
         } else {
             bubble.classList.add('responseBubble');
             if (!no_default_text) bubble.setVisibleText('Generating response...');
-        }
-        segment.classList.add('chatSegment');
-        segment.appendChild(bubble);
-        chat.appendChild(segment);
-        segment.scrollIntoView({behavior: 'smooth', block: 'end'});
-        bubble.setHiddenText = (t) => bubble.setAttribute('original', t);
-        bubble.setVisibleText = (t) => {
-            bubble.textContent = t;
-            bubble.setHiddenText(t);
-        }
-        bubble.getHiddenText = () => bubble.getAttribute('original');
-        bubble.format = (t) => {
-            if (t == null) t = bubble.getHiddenText();
-            else bubble.setHiddenText(t);
-            bubble.innerHTML = '';
-            if (enable_markdown.value) bubble.append(...TextFormatter.getFormatted(t));
-            else bubble.textContent = t;
-            bubble.scrollIntoView({behavior: 'smooth', block: 'end'});
         }
         return bubble;
     }
@@ -382,7 +382,7 @@
                         line = line.trim();
                         if (line.length > 0) {
                             line = JSON.parse(line);
-                            output.format(output.getHiddenText() + line.response);
+                            output.format(output.getUnformattedText() + line.response);
                             if (line.context != null) currentContext = line.context;
                         }
                     }
